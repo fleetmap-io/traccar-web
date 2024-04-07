@@ -1,0 +1,1 @@
+/api/*  http://traccar-eu.fleetmap.pt/api/:splat  200

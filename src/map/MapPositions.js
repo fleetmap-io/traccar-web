@@ -5,8 +5,8 @@ import { useTheme } from '@mui/styles';
 import { map } from './core/MapView';
 import { formatTime, getStatusColor } from '../common/util/formatter';
 import { mapIconKey } from './core/preloadImages';
-import { findFonts } from './core/mapUtil';
 import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useCatchCallback } from '../reactHelper';
 
 const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField }) => {
   const id = useId();
@@ -32,10 +32,10 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         showDirection = false;
         break;
       case 'all':
-        showDirection = true;
+        showDirection = position.course > 0;
         break;
       default:
-        showDirection = selectedPositionId === position.id;
+        showDirection = selectedPositionId === position.id && position.course > 0;
         break;
     }
     return {
@@ -67,19 +67,16 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
     }
   }, [onClick]);
 
-  const onClusterClick = useCallback((event) => {
+  const onClusterClick = useCatchCallback(async (event) => {
     event.preventDefault();
     const features = map.queryRenderedFeatures(event.point, {
       layers: [clusters],
     });
     const clusterId = features[0].properties.cluster_id;
-    map.getSource(id).getClusterExpansionZoom(clusterId, (error, zoom) => {
-      if (!error) {
-        map.easeTo({
-          center: features[0].geometry.coordinates,
-          zoom,
-        });
-      }
+    const zoom = await map.getSource(id).getClusterExpansionZoom(clusterId);
+    map.easeTo({
+      center: features[0].geometry.coordinates,
+      zoom,
     });
   }, [clusters]);
 
@@ -115,7 +112,6 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'text-allow-overlap': true,
           'text-anchor': 'bottom',
           'text-offset': [0, -2 * iconScale],
-          'text-font': findFonts(map),
           'text-size': 12,
         },
         paint: {
@@ -154,7 +150,6 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         'icon-image': 'background',
         'icon-size': iconScale,
         'text-field': '{point_count_abbreviated}',
-        'text-font': findFonts(map),
         'text-size': 14,
       },
     });

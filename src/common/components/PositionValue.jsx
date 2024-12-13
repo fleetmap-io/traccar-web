@@ -22,7 +22,7 @@ import {
 import { speedToKnots } from '../util/converter';
 import { useAttributePreference, usePreference } from '../util/preferences';
 import { useTranslation } from './LocalizationProvider';
-import { useAdministrator } from '../util/permissions';
+import { useDeviceReadonly } from '../util/permissions';
 import AddressValue from './AddressValue';
 import GeofencesValue from './GeofencesValue';
 import DriverValue from './DriverValue';
@@ -30,7 +30,7 @@ import DriverValue from './DriverValue';
 const PositionValue = ({ position, property, attribute }) => {
   const t = useTranslation();
 
-  const admin = useAdministrator();
+  const deviceReadonly = useDeviceReadonly();
 
   const device = useSelector((state) => state.devices.items[position.deviceId]);
 
@@ -42,14 +42,13 @@ const PositionValue = ({ position, property, attribute }) => {
   const speedUnit = useAttributePreference('speedUnit');
   const volumeUnit = useAttributePreference('volumeUnit');
   const coordinateFormat = usePreference('coordinateFormat');
-  const hours12 = usePreference('twelveHourFormat');
 
   const formatValue = () => {
     switch (key) {
       case 'fixTime':
       case 'deviceTime':
       case 'serverTime':
-        return formatTime(value, 'seconds', hours12);
+        return formatTime(value, 'seconds');
       case 'latitude':
         return formatCoordinate('latitude', value, coordinateFormat);
       case 'longitude':
@@ -94,6 +93,14 @@ const PositionValue = ({ position, property, attribute }) => {
     }
   };
 
+  if (key === 'address') {
+    return <AddressValue latitude={position.latitude} longitude={position.longitude} originalAddress={value} />;
+  }
+
+  if (value === undefined || value === null) {
+    return '';
+  }
+
   switch (key) {
     case 'image':
     case 'video':
@@ -105,26 +112,15 @@ const PositionValue = ({ position, property, attribute }) => {
         <>
           {formatValue(value)}
           &nbsp;&nbsp;
-          {admin && <Link component={RouterLink} underline="none" to={`/settings/accumulators/${position.deviceId}`}>&#9881;</Link>}
+          {!deviceReadonly && <Link component={RouterLink} underline="none" to={`/settings/accumulators/${position.deviceId}`}>&#9881;</Link>}
         </>
       );
-    case 'address':
-      return <AddressValue latitude={position.latitude} longitude={position.longitude} originalAddress={value} />;
     case 'network':
-      if (value) {
-        return <Link component={RouterLink} underline="none" to={`/network/${position.id}`}>{t('sharedInfoTitle')}</Link>;
-      }
-      return '';
+      return <Link component={RouterLink} underline="none" to={`/network/${position.id}`}>{t('sharedInfoTitle')}</Link>;
     case 'geofenceIds':
-      if (value) {
-        return <GeofencesValue geofenceIds={value} />;
-      }
-      return '';
+      return <GeofencesValue geofenceIds={value} />;
     case 'driverUniqueId':
-      if (value) {
-        return <DriverValue driverUniqueId={value} />;
-      }
-      return '';
+      return <DriverValue driverUniqueId={value} />;
     default:
       return formatValue(value);
   }

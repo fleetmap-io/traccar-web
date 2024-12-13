@@ -8,7 +8,7 @@ import {
   formatDistance, formatSpeed, formatVolume, formatTime, formatNumericHours,
 } from '../common/util/formatter';
 import ReportFilter from './components/ReportFilter';
-import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useAttributePreference } from '../common/util/preferences';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
 import ReportsMenu from './components/ReportsMenu';
@@ -27,6 +27,8 @@ const columnsArray = [
   ['averageSpeed', 'reportAverageSpeed'],
   ['maxSpeed', 'reportMaximumSpeed'],
   ['engineHours', 'reportEngineHours'],
+  ['startHours', 'reportStartEngineHours'],
+  ['endHours', 'reportEndEngineHours'],
   ['spentFuel', 'reportSpentFuel'],
 ];
 const columnsMap = new Map(columnsArray);
@@ -41,7 +43,6 @@ const SummaryReportPage = () => {
   const distanceUnit = useAttributePreference('distanceUnit');
   const speedUnit = useAttributePreference('speedUnit');
   const volumeUnit = useAttributePreference('volumeUnit');
-  const hours12 = usePreference('twelveHourFormat');
 
   const [columns, setColumns] = usePersistedState('summaryColumns', ['startTime', 'distance', 'averageSpeed']);
   const [daily, setDaily] = useState(false);
@@ -93,7 +94,7 @@ const SummaryReportPage = () => {
       case 'deviceId':
         return devices[value].name;
       case 'startTime':
-        return formatTime(value, 'date', hours12);
+        return formatTime(value, 'date');
       case 'startOdometer':
       case 'endOdometer':
       case 'distance':
@@ -102,6 +103,8 @@ const SummaryReportPage = () => {
       case 'maxSpeed':
         return value > 0 ? formatSpeed(value, speedUnit, t) : null;
       case 'engineHours':
+      case 'startHours':
+      case 'endHours':
         return value > 0 ? formatNumericHours(value, t) : null;
       case 'spentFuel':
         return value > 0 ? formatVolume(value, volumeUnit, t) : null;
@@ -113,7 +116,7 @@ const SummaryReportPage = () => {
   return (
     <PageLayout menu={<ReportsMenu />} breadcrumbs={['reportTitle', 'reportSummary']}>
       <div className={classes.header}>
-        <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule} multiDevice includeGroups>
+        <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule} multiDevice includeGroups loading={loading}>
           <div className={classes.filterItem}>
             <FormControl fullWidth>
               <InputLabel>{t('sharedType')}</InputLabel>

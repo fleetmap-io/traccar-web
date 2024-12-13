@@ -5,8 +5,9 @@ import { useTheme } from '@mui/styles';
 import { map } from './core/MapView';
 import { formatTime, getStatusColor } from '../common/util/formatter';
 import { mapIconKey } from './core/preloadImages';
-import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useAttributePreference } from '../common/util/preferences';
 import { useCatchCallback } from '../reactHelper';
+import { findFonts } from './core/mapUtil';
 
 const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleField }) => {
   const id = useId();
@@ -21,7 +22,6 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
   const selectedDeviceId = useSelector((state) => state.devices.selectedId);
 
   const mapCluster = useAttributePreference('mapCluster', true);
-  const hours12 = usePreference('twelveHourFormat');
   const directionType = useAttributePreference('mapDirection', 'selected');
 
   const createFeature = (devices, position, selectedPositionId) => {
@@ -42,7 +42,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
       id: position.id,
       deviceId: position.deviceId,
       name: device.name,
-      fixTime: formatTime(position.fixTime, 'seconds', hours12),
+      fixTime: formatTime(position.fixTime, 'seconds'),
       category: mapIconKey(device.category),
       color: showStatus ? position.attributes.color || getStatusColor(device.status) : 'neutral',
       rotation: position.course,
@@ -55,7 +55,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
 
   const onMapClick = useCallback((event) => {
     if (!event.defaultPrevented && onClick) {
-      onClick();
+      onClick(event.lngLat.lat, event.lngLat.lng);
     }
   }, [onClick]);
 
@@ -112,6 +112,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
           'text-allow-overlap': true,
           'text-anchor': 'bottom',
           'text-offset': [0, -2 * iconScale],
+          'text-font': findFonts(map),
           'text-size': 12,
         },
         paint: {
@@ -150,6 +151,7 @@ const MapPositions = ({ positions, onClick, showStatus, selectedPosition, titleF
         'icon-image': 'background',
         'icon-size': iconScale,
         'text-field': '{point_count_abbreviated}',
+        'text-font': findFonts(map),
         'text-size': 14,
       },
     });

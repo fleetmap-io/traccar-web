@@ -10,7 +10,7 @@ import {
   formatDistance, formatVolume, formatTime, formatNumericHours,
 } from '../common/util/formatter';
 import ReportFilter from './components/ReportFilter';
-import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useAttributePreference } from '../common/util/preferences';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
 import ReportsMenu from './components/ReportsMenu';
@@ -25,6 +25,7 @@ import AddressValue from '../common/components/AddressValue';
 import TableShimmer from '../common/components/TableShimmer';
 import MapGeofence from '../map/MapGeofence';
 import scheduleReport from './common/scheduleReport';
+import MapScale from '../map/MapScale';
 
 const columnsArray = [
   ['startTime', 'reportStartTime'],
@@ -44,7 +45,6 @@ const StopReportPage = () => {
 
   const distanceUnit = useAttributePreference('distanceUnit');
   const volumeUnit = useAttributePreference('volumeUnit');
-  const hours12 = usePreference('twelveHourFormat');
 
   const [columns, setColumns] = usePersistedState('stopColumns', ['startTime', 'endTime', 'startOdometer', 'address']);
   const [items, setItems] = useState([]);
@@ -92,7 +92,7 @@ const StopReportPage = () => {
     switch (key) {
       case 'startTime':
       case 'endTime':
-        return formatTime(value, 'minutes', hours12);
+        return formatTime(value, 'minutes');
       case 'startOdometer':
         return formatDistance(value, distanceUnit, t);
       case 'duration':
@@ -125,12 +125,13 @@ const StopReportPage = () => {
                 titleField="fixTime"
               />
             </MapView>
+            <MapScale />
             <MapCamera latitude={selectedItem.latitude} longitude={selectedItem.longitude} />
           </div>
         )}
         <div className={classes.containerMain}>
           <div className={classes.header}>
-            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule}>
+            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule} loading={loading}>
               <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
             </ReportFilter>
           </div>

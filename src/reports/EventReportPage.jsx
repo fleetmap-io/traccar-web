@@ -17,12 +17,13 @@ import ColumnSelect from './components/ColumnSelect';
 import { useCatch, useEffectAsync } from '../reactHelper';
 import useReportStyles from './common/useReportStyles';
 import TableShimmer from '../common/components/TableShimmer';
-import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useAttributePreference } from '../common/util/preferences';
 import MapView from '../map/core/MapView';
 import MapGeofence from '../map/MapGeofence';
 import MapPositions from '../map/MapPositions';
 import MapCamera from '../map/MapCamera';
 import scheduleReport from './common/scheduleReport';
+import MapScale from '../map/MapScale';
 
 const columnsArray = [
   ['eventTime', 'positionFixTime'],
@@ -42,7 +43,6 @@ const EventReportPage = () => {
   const geofences = useSelector((state) => state.geofences.items);
 
   const speedUnit = useAttributePreference('speedUnit');
-  const hours12 = usePreference('twelveHourFormat');
 
   const [allEventTypes, setAllEventTypes] = useState([['allEvents', 'eventAll']]);
 
@@ -123,7 +123,7 @@ const EventReportPage = () => {
     const value = item[key];
     switch (key) {
       case 'eventTime':
-        return formatTime(value, 'seconds', hours12);
+        return formatTime(value, 'seconds');
       case 'type':
         return t(prefixString('event', value));
       case 'geofenceId':
@@ -163,12 +163,13 @@ const EventReportPage = () => {
               <MapGeofence />
               {position && <MapPositions positions={[position]} titleField="fixTime" />}
             </MapView>
+            <MapScale />
             {position && <MapCamera latitude={position.latitude} longitude={position.longitude} />}
           </div>
         )}
         <div className={classes.containerMain}>
           <div className={classes.header}>
-            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule}>
+            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule} loading={loading}>
               <div className={classes.filterItem}>
                 <FormControl fullWidth>
                   <InputLabel>{t('reportEventTypes')}</InputLabel>

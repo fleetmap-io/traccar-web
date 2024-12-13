@@ -9,7 +9,7 @@ import {
   formatDistance, formatSpeed, formatVolume, formatTime, formatNumericHours,
 } from '../common/util/formatter';
 import ReportFilter from './components/ReportFilter';
-import { useAttributePreference, usePreference } from '../common/util/preferences';
+import { useAttributePreference } from '../common/util/preferences';
 import { useTranslation } from '../common/components/LocalizationProvider';
 import PageLayout from '../common/components/PageLayout';
 import ReportsMenu from './components/ReportsMenu';
@@ -25,6 +25,7 @@ import MapMarkers from '../map/MapMarkers';
 import MapCamera from '../map/MapCamera';
 import MapGeofence from '../map/MapGeofence';
 import scheduleReport from './common/scheduleReport';
+import MapScale from '../map/MapScale';
 
 const columnsArray = [
   ['startTime', 'reportStartTime'],
@@ -50,7 +51,6 @@ const TripReportPage = () => {
   const distanceUnit = useAttributePreference('distanceUnit');
   const speedUnit = useAttributePreference('speedUnit');
   const volumeUnit = useAttributePreference('volumeUnit');
-  const hours12 = usePreference('twelveHourFormat');
 
   const [columns, setColumns] = usePersistedState('tripColumns', ['startTime', 'endTime', 'distance', 'averageSpeed']);
   const [items, setItems] = useState([]);
@@ -62,12 +62,12 @@ const TripReportPage = () => {
     {
       latitude: selectedItem.startLat,
       longitude: selectedItem.startLon,
-      image: 'default-error',
+      image: 'start-success',
     },
     {
       latitude: selectedItem.endLat,
       longitude: selectedItem.endLon,
-      image: 'default-success',
+      image: 'finish-error',
     },
   ]);
 
@@ -134,7 +134,7 @@ const TripReportPage = () => {
     switch (key) {
       case 'startTime':
       case 'endTime':
-        return formatTime(value, 'minutes', hours12);
+        return formatTime(value, 'minutes');
       case 'startOdometer':
       case 'endOdometer':
       case 'distance':
@@ -170,11 +170,12 @@ const TripReportPage = () => {
                 </>
               )}
             </MapView>
+            <MapScale />
           </div>
         )}
         <div className={classes.containerMain}>
           <div className={classes.header}>
-            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule}>
+            <ReportFilter handleSubmit={handleSubmit} handleSchedule={handleSchedule} loading={loading}>
               <ColumnSelect columns={columns} setColumns={setColumns} columnsArray={columnsArray} />
             </ReportFilter>
           </div>
